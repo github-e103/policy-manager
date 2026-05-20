@@ -545,7 +545,7 @@ if (document.getElementById('editor-form')) {
     const category   = categoryInput.value.trim();
 
     if (!title || !owner || !department || !category) {
-      toast('Title, Owner, Department, and Category are required', 'error');
+      toast('Title, Owner, Department, and Function are required', 'error');
       return;
     }
 
