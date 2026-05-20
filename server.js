@@ -47,6 +47,7 @@ app.post('/login', (req, res) => {
     firstName:   user.first_name  || '',
     lastName:    user.last_name   || '',
     role:        user.role        || 'normal',
+    title:       user.title       || '',
   };
   res.redirect('/');
 });
@@ -58,8 +59,8 @@ app.post('/logout', (req, res) => {
 // ── Current user info ─────────────────────────────────────────────────────────
 app.get('/api/me', (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Unauthorised' });
-  const { username, displayName, firstName, lastName, role } = req.session.user;
-  res.json({ username, displayName, firstName, lastName, role });
+  const { username, displayName, firstName, lastName, role, title } = req.session.user;
+  res.json({ username, displayName, firstName, lastName, role, title });
 });
 
 // ── Change password ───────────────────────────────────────────────────────────
@@ -98,28 +99,28 @@ app.get('/admin/users', requireAdmin, (req, res) => {
 
 app.get('/api/admin/users', requireAdmin, (req, res) => {
   const users = db.all(
-    `SELECT id, username, first_name, last_name, role, created_at FROM users ORDER BY created_at`
+    `SELECT id, username, first_name, last_name, role, title, created_at FROM users ORDER BY created_at`
   );
   res.json(users);
 });
 
 app.post('/api/admin/users', requireAdmin, (req, res) => {
-  const { username, firstName, lastName, role } = req.body;
+  const { username, firstName, lastName, role, title } = req.body;
   if (!username?.trim() || !firstName?.trim() || !lastName?.trim()) {
     return res.status(400).json({ error: 'Username, first name and last name are required' });
   }
-  if (!['admin', 'normal'].includes(role)) {
-    return res.status(400).json({ error: 'Role must be admin or normal' });
+  if (!['admin', 'approver', 'normal'].includes(role)) {
+    return res.status(400).json({ error: 'Role must be admin, approver, or normal' });
   }
   try {
     const hash        = bcrypt.hashSync('changeme', 10);
     const displayName = `${firstName.trim()} ${lastName.trim()}`;
     const result      = db.run(
-      `INSERT INTO users (username, password_hash, display_name, first_name, last_name, role)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [username.trim(), hash, displayName, firstName.trim(), lastName.trim(), role]
+      `INSERT INTO users (username, password_hash, display_name, first_name, last_name, role, title)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [username.trim(), hash, displayName, firstName.trim(), lastName.trim(), role, title?.trim() || '']
     );
-    res.status(201).json({ id: result.lastInsertRowid, username: username.trim(), firstName, lastName, role });
+    res.status(201).json({ id: result.lastInsertRowid, username: username.trim(), firstName, lastName, role, title: title?.trim() || '' });
   } catch (e) {
     if (e.message.includes('UNIQUE')) return res.status(400).json({ error: 'Username already exists' });
     res.status(500).json({ error: e.message });

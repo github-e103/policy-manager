@@ -135,12 +135,19 @@ router.get('/', (req, res) => {
   }
 });
 
+function sessionTitle(req) {
+  if (!req.session?.user) return null;
+  const u = db.get('SELECT title FROM users WHERE id = ?', [req.session.user.id]);
+  return u?.title?.trim() || req.session.user.displayName || req.session.user.username || null;
+}
+
 // POST /api/policies — create new policy
 router.post('/', (req, res) => {
   const {
     title, owner, department, category,
-    body_html = '', change_summary = 'Initial version', created_by = 'System'
+    body_html = '', change_summary = 'Initial version',
   } = req.body;
+  const created_by = sessionTitle(req) || req.body.created_by || 'System';
 
   if (!title || !owner || !department || !category) {
     return res.status(400).json({ error: 'title, owner, department, and category are required' });
@@ -234,11 +241,19 @@ router.get('/:id/versions', (req, res) => {
 // POST /api/policies/:id/workflow — must be before /:id
 router.post('/:id/workflow', (req, res) => {
   const { id } = req.params;
-  const { stage, actor = 'System', comments = '' } = req.body;
+  const { stage, comments = '' } = req.body;
+  const actor = sessionTitle(req) || req.body.actor || 'System';
 
   const validStages = ['draft', 'review', 'approved', 'rejected'];
   if (!stage || !validStages.includes(stage)) {
     return res.status(400).json({ error: `stage must be one of: ${validStages.join(', ')}` });
+  }
+
+  if (['approved', 'rejected'].includes(stage)) {
+    const role = req.session?.user?.role;
+    if (!['admin', 'approver'].includes(role)) {
+      return res.status(403).json({ error: 'Only approvers can approve or reject policies' });
+    }
   }
 
   try {
@@ -552,7 +567,8 @@ router.get('/:id', (req, res) => {
 //   • Save while already in draft/review  → overwrite current version row in place
 router.put('/:id', (req, res) => {
   const { id } = req.params;
-  const { title, owner, department, category, policy_no, body_html, change_summary, created_by = 'System' } = req.body;
+  const { title, owner, department, category, policy_no, body_html, change_summary } = req.body;
+  const created_by = sessionTitle(req) || req.body.created_by || 'System';
 
   try {
     const policy = db.get('SELECT * FROM policies WHERE id = ?', [id]);

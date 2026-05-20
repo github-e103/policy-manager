@@ -336,6 +336,14 @@ if (document.getElementById('editor-form')) {
   const versionLabel   = document.getElementById('current-version');
 
   let currentPolicy = null;
+  let _currentUser  = null;
+
+  fetch('/api/me').then(r => r.ok ? r.json() : null).then(u => {
+    if (!u) return;
+    _currentUser = u;
+    if (!authorInput.value) authorInput.value = u.title || '';
+    if (currentPolicy) renderWorkflowBar(currentPolicy.status);
+  }).catch(() => {});
 
   /* ── PDF preview ───── */
   const previewLoading = document.getElementById('preview-loading');
@@ -484,9 +492,15 @@ if (document.getElementById('editor-form')) {
     ['workflow-review-btn','workflow-approve-btn','workflow-reject-btn','workflow-reopen-btn'].forEach(hide);
     if (!policyId) return;
 
-    if (status === 'draft')     { show('workflow-review-btn'); }
-    if (status === 'review')    { show('workflow-approve-btn'); show('workflow-reject-btn'); }
-    if (status === 'approved' || status === 'rejected') { show('workflow-reopen-btn'); }
+    const canApprove = ['admin', 'approver'].includes(_currentUser?.role);
+
+    if (status === 'draft')  { show('workflow-review-btn'); }
+    if (status === 'review') {
+      if (canApprove) { show('workflow-approve-btn'); show('workflow-reject-btn'); }
+    }
+    if (status === 'approved' || status === 'rejected') {
+      if (canApprove) show('workflow-reopen-btn');
+    }
   }
 
   /* ── Load policy ───── */

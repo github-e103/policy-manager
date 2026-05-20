@@ -35,12 +35,13 @@
             <th>Username</th>
             <th>First Name</th>
             <th>Last Name</th>
+            <th>Title</th>
             <th>Role</th>
             <th>Created</th>
           </tr>
         </thead>
         <tbody id="users-tbody">
-          <tr><td colspan="5" class="loading-cell"><div class="spinner"></div> Loading…</td></tr>
+          <tr><td colspan="6" class="loading-cell"><div class="spinner"></div> Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -70,10 +71,15 @@
                pattern="[a-zA-Z0-9_\-]+" title="Letters, numbers, underscores and hyphens only">
       </div>
       <div class="form-group">
+        <label class="form-label">Title <span style="font-size:.8rem;color:#888;">(appears on policy metadata)</span></label>
+        <input type="text" id="title" class="form-input" placeholder="e.g. Chief Compliance Officer">
+      </div>
+      <div class="form-group">
         <label class="form-label">Role</label>
         <select id="role" class="form-input">
-          <option value="normal">Normal</option>
-          <option value="admin">Admin</option>
+          <option value="normal">Normal — can create and edit policies</option>
+          <option value="approver">Approver — can create, edit, and approve policies</option>
+          <option value="admin">Admin — full access including user management</option>
         </select>
       </div>
       <p style="font-size:.82rem;color:#888;margin-bottom:16px;">
@@ -93,20 +99,23 @@
       if (!res.ok) throw new Error('Failed to load users');
       const users = await res.json();
       if (!users.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No users found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">No users found</td></tr>';
         return;
       }
+      const roleBadge = r => r === 'admin' ? 'badge-approved' : r === 'approver' ? 'badge-review' : 'badge-draft';
+      const roleLabel = r => r === 'admin' ? 'Admin' : r === 'approver' ? 'Approver' : 'Normal';
       tbody.innerHTML = users.map(u => `
         <tr>
           <td><strong>${escHtml(u.username)}</strong></td>
           <td>${escHtml(u.first_name || '—')}</td>
           <td>${escHtml(u.last_name  || '—')}</td>
-          <td><span class="badge ${u.role === 'admin' ? 'badge-approved' : 'badge-draft'}">${u.role}</span></td>
+          <td>${escHtml(u.title || '—')}</td>
+          <td><span class="badge ${roleBadge(u.role)}">${roleLabel(u.role)}</span></td>
           <td>${new Date(u.created_at).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</td>
         </tr>
       `).join('');
     } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="5" class="error-cell">${e.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="error-cell">${e.message}</td></tr>`;
     }
   }
 
@@ -121,6 +130,7 @@
       username:  document.getElementById('username').value.trim(),
       firstName: document.getElementById('first-name').value.trim(),
       lastName:  document.getElementById('last-name').value.trim(),
+      title:     document.getElementById('title').value.trim(),
       role:      document.getElementById('role').value,
     };
 

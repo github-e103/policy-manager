@@ -68,7 +68,7 @@ async function initDb() {
     try { _db.run(`ALTER TABLE policies ADD COLUMN ${col}`); } catch {}
   });
 
-  ['first_name TEXT', 'last_name TEXT', "role TEXT NOT NULL DEFAULT 'normal'"].forEach(col => {
+  ['first_name TEXT', 'last_name TEXT', "role TEXT NOT NULL DEFAULT 'normal'", "title TEXT NOT NULL DEFAULT ''"].forEach(col => {
     try { _db.run(`ALTER TABLE users ADD COLUMN ${col}`); } catch {}
   });
 
