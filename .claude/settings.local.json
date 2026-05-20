@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Content *)",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Invoke-RestMethod -Uri http://localhost:3000/api/policies -Method GET | Select-Object -First 2 | Format-List id, title, status)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Get-ChildItem C:\\\\Projects\\\\policy-manager | Where-Object { $_.Name -ne 'node_modules' } | Format-Table Name, PSIsContainer -AutoSize)",
+      "Bash(npm install *)",
+      "PowerShell(Invoke-RestMethod)",
+      "PowerShell(Invoke-RestMethod *)"
+    ]
+  }
+}

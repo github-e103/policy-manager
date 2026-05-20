@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>{{TITLE}}</title>
+<style>
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Aptos',Arial,sans-serif; color:#000; font-size:11pt; }
+
+  /* ── Cover header (page 1 only) ── */
+  .hdr {
+    background: #8e2004;
+    color: white;
+    text-align: center;
+    padding: 8px 40px;
+  }
+  .hdr-dept  { font-size:14pt; font-weight:700; margin-bottom:6px; }
+  .hdr-title { font-size:16pt; font-weight:700; }
+
+  /* ── Metadata rows ── */
+  .meta-rows { padding: 4px 60px; display:flex; flex-wrap:wrap; }
+  .meta-col  { flex: 0 0 50%; }
+  .meta-row  { display:flex; align-items:baseline; margin-bottom:4px; font-size:11pt; }
+.meta-label {
+    font-weight:700; color:#8e2004;
+    min-width:170px; flex-shrink:0;
+  }
+  .meta-value { color:#1a1a1a; }
+
+  /* ── Dividers ── */
+  .divider-red {
+    height: 2px;
+    background: #8e2004;
+  }
+  .divider {
+    height: 2px;
+    background: #000;
+    margin: 2px 0 22px;
+  }
+
+  /* ── Policy body ── */
+  .body-sec { padding:0 60px 40px; }
+  .body-content { line-height:1.25; color:#000; }
+  .body-content h1 { font-size:11pt; color:#000; margin:20px 0 10px; }
+  .body-content h2 { font-size:11pt; color:#000; margin:16px 0 8px; border:none; padding:0; text-transform:none; letter-spacing:0; }
+  .body-content h3 { font-size:11pt; color:#000; margin:12px 0 6px; }
+  .body-content p  { margin-bottom:10px; }
+  .body-content ul, .body-content ol { margin:8px 0 10px 20px; }
+  .body-content li { margin-bottom:4px; }
+  .body-content table { width:100%; border-collapse:collapse; margin:12px 0; }
+  .body-content table th,
+  .body-content table td { border:1px solid #ddd; padding:4px 8px; font-size:10pt; }
+  .body-content table th { background:#8e2004; color:white; font-weight:600; border-color: #8e2004; }
+  .body-content blockquote {
+    border-left:4px solid #4361ee; padding:8px 16px;
+    background:#f0f4ff; margin:12px 0;
+  }
+  .body-content code {
+    background:#f5f5f5; padding:1px 5px;
+    border-radius:3px; font-family:monospace; font-size:9.5pt;
+  }
+  .body-content pre {
+    background:#f5f5f5; padding:12px; border-radius:4px;
+    overflow-x:auto; font-size:9.5pt;
+  }
+  /* Redline markup */
+  .body-content ins {
+    background:#d1fae5; color:#065f46;
+    text-decoration:none; border-radius:2px; padding:0 2px;
+  }
+  .body-content del {
+    background:#fee2e2; color:#7f1d1d;
+    text-decoration:line-through; border-radius:2px; padding:0 2px;
+  }
+  
+  .background-image {
+    position: fixed;
+    right: -12mm;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    transform-origin: center center;
+    width: 150px;
+    z-index: -1;
+  }  
+</style>
+</head>
+<body>
+  <!-- BACKGROUND IMAGE — appears on every page -->
+  <img class="background-image" src="imgs/elara_logo.png" alt="Elara Logo" />
+  <div class="hdr">
+    <div class="hdr-dept">{{DEPARTMENT}}</div>
+    <div class="hdr-title">{{POLICY_NO}} - {{TITLE}}</div>
+  </div>
+
+  <div class="meta-rows">
+    <div class="meta-col">
+      <div class="meta-row">
+        <span class="meta-label">Effective Date:</span>
+        <span class="meta-value">{{CREATED_DATE}}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Policy Owner:</span>
+        <span class="meta-value">{{OWNER}}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Approved By:</span>
+        <span class="meta-value">{{APPROVED_BY}}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Approved Date:</span>
+        <span class="meta-value">{{APPROVED_DATE}}</span>
+      </div>
+    </div>
+    <div class="meta-col">
+      <div class="meta-row">
+        <span class="meta-label">Last Modified:</span>
+        <span class="meta-value">{{UPDATED_DATE}}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Version:</span>
+        <span class="meta-value">{{VERSION_NUMBER}}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Category:</span>
+        <span class="meta-value">{{CATEGORY}}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Status:</span>
+        <span class="meta-value">{{STATUS}}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider-red"></div>
+  <div class="divider"></div>
+
+  <div class="body-sec">
+    <div class="body-content">
+      {{BODY_HTML}}
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elara Health - PolicyManager — Policies</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="brand-icon">📋</div>
+    Elara Health - PolicyManager
+  </div>
+  <div class="navbar-actions">
+    <button class="btn btn-primary" id="new-policy-btn">+ New Policy</button>
+  </div>
+</nav>
+
+<div id="toast-container"></div>
+
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1>Policy Library</h1>
+      <p>Manage and track all organizational policies</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">📋</div>
+      <div class="stat-info">
+        <h3 id="stat-total">—</h3>
+        <p>Total Policies</p>
+      </div>
+    </div>
+    <div class="stat-card stat-draft">
+      <div class="stat-icon">✏️</div>
+      <div class="stat-info">
+        <h3 id="stat-draft">—</h3>
+        <p>Draft</p>
+      </div>
+    </div>
+    <div class="stat-card stat-review">
+      <div class="stat-icon">🔍</div>
+      <div class="stat-info">
+        <h3 id="stat-review">—</h3>
+        <p>Under Review</p>
+      </div>
+    </div>
+    <div class="stat-card stat-approved">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <h3 id="stat-approved">—</h3>
+        <p>Approved</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table card -->
+  <div class="card">
+    <div class="table-toolbar">
+      <div class="search-bar">
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" class="search-input"
+            placeholder="Search by title, owner, department…">
+        </div>
+        <select id="status-filter" class="form-input" style="width:160px">
+          <option value="">All Statuses</option>
+          <option value="draft">Draft</option>
+          <option value="review">Under Review</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button id="batch-download-btn" class="btn btn-outline" disabled style="white-space:nowrap">
+          &#8595; Download Selected (<span id="selected-count">0</span>)
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="policies-table">
+        <thead>
+          <tr>
+            <th style="width:36px"><input type="checkbox" id="select-all" title="Select all"></th>
+            <th>Policy No</th>
+            <th>Title</th>
+            <th>Owner</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th>Version</th>
+            <th>Last Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="policies-tbody">
+          <tr>
+            <td colspan="8" class="loading-cell">
+              <div class="spinner"></div> Loading policies…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">📄</div>
+      <h3>No policies found</h3>
+      <p>Click <strong>+ New Policy</strong> to create your first one</p>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

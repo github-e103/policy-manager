@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PolicyManager — Editor</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-editor">
+    <a href="/" class="back-btn">&#8592; Policies</a>
+    <span id="editor-page-title" class="editor-title">New Policy</span>
+  </div>
+  <div class="navbar-actions">
+    <button class="btn btn-secondary" id="history-btn" style="display:none">&#128336; History</button>
+    <button class="btn btn-secondary" id="export-pdf-btn">&#8595; Export PDF</button>
+    <button class="btn btn-primary" id="save-btn">&#128190; Save</button>
+  </div>
+</nav>
+
+<div id="toast-container"></div>
+
+<div id="lock-banner" class="lock-banner" style="display:none">
+  <span class="lock-banner-icon">&#128274;</span>
+  <span id="lock-banner-text"></span>
+  <button id="lock-banner-close" class="lock-banner-close">&times;</button>
+</div>
+
+<div class="editor-wrapper">
+  <div class="editor-main">
+
+    <!-- ── Form panel ───────────────────────────── -->
+    <div class="form-panel">
+      <div class="form-panel-header">
+        <h2>Policy Details</h2>
+      </div>
+      <div class="form-body">
+        <form id="editor-form" onsubmit="return false">
+
+          <div class="form-section">
+            <div class="form-section-title">Metadata</div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="title">
+                  Title <span class="req">*</span>
+                </label>
+                <input type="text" id="title" class="form-input"
+                  placeholder="e.g. Acceptable Use Policy" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="policy-no">Policy No.</label>
+                <input type="text" id="policy-no" class="form-input"
+                  placeholder="e.g. IT-001">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="owner">
+                  Owner <span class="req">*</span>
+                </label>
+                <input type="text" id="owner" class="form-input"
+                  placeholder="e.g. Jane Smith" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="department">
+                  Department <span class="req">*</span>
+                </label>
+                <input type="text" id="department" class="form-input"
+                  placeholder="e.g. IT" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="category">
+                Category <span class="req">*</span>
+              </label>
+              <select id="category" class="form-input" required>
+                <option value="">&#8212; Select Category &#8212;</option>
+                <option value="IT &amp; Security">IT &amp; Security</option>
+                <option value="Human Resources">Human Resources</option>
+                <option value="Finance &amp; Accounting">Finance &amp; Accounting</option>
+                <option value="Legal &amp; Compliance">Legal &amp; Compliance</option>
+                <option value="Operations">Operations</option>
+                <option value="Health &amp; Safety">Health &amp; Safety</option>
+                <option value="Data &amp; Privacy">Data &amp; Privacy</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Policy Content</div>
+            <div class="form-group">
+              <textarea id="body-html"></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Version Info</div>
+            <div class="form-group">
+              <label class="form-label" for="change-summary">Change Summary</label>
+              <input type="text" id="change-summary" class="form-input"
+                placeholder="e.g. Updated access control section">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="created-by">Author</label>
+              <input type="text" id="created-by" class="form-input"
+                placeholder="Your name">
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Preview panel ────────────────────────── -->
+    <div class="preview-panel">
+      <div class="preview-header">
+        <div class="preview-dot"></div>
+        <span id="preview-header-label">PDF Preview</span>
+        <button id="refresh-preview-btn" class="btn btn-sm btn-outline" style="margin-left:auto">&#8635; Refresh Preview</button>
+      </div>
+      <div id="preview-stale-bar" class="preview-stale-bar" style="display:none">
+        Content has changed &mdash; click <strong>Refresh Preview</strong> to update.
+      </div>
+      <div id="preview-loading" class="preview-loading" style="display:none">
+        <div class="spinner"></div> Generating preview…
+      </div>
+      <iframe id="preview-frame" title="Policy preview"></iframe>
+    </div>
+
+  </div>
+
+  <!-- ── Workflow bar ──────────────────────────── -->
+  <div class="workflow-bar">
+    <div id="workflow-bar"></div>
+
+    <div class="workflow-meta">
+      <span class="ver-label" id="current-version">New</span>
+    </div>
+
+    <div class="workflow-actions">
+      <button id="workflow-review-btn"  class="btn btn-outline"  style="display:none">Submit for Review</button>
+      <button id="workflow-approve-btn" class="btn btn-success"  style="display:none">Approve</button>
+      <button id="workflow-reject-btn"  class="btn btn-danger"   style="display:none">Reject</button>
+      <button id="workflow-reopen-btn"  class="btn btn-warning"  style="display:none">Re-open as Draft</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Version History Modal ──────────────────────────── -->
+<div id="history-modal" class="hmodal-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="hmodal">
+
+    <div class="hmodal-header">
+      <h2>Version History</h2>
+      <button id="history-close" class="hmodal-close" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="hmodal-body">
+
+      <!-- Left: version list -->
+      <div class="hmodal-sidebar">
+        <div class="hmodal-sidebar-header">
+          <span>Versions</span>
+          <span class="hmodal-compare-hint" id="compare-hint" style="display:none">Pick a second version</span>
+          <button class="btn btn-outline btn-sm" id="compare-toggle">Compare two</button>
+        </div>
+        <ul class="version-list" id="version-list"></ul>
+      </div>
+
+      <!-- Middle: diff view -->
+      <div class="hmodal-diff">
+        <div class="diff-meta" id="diff-meta" style="display:none">
+          <span class="diff-badge diff-from" id="diff-from-label"></span>
+          <span class="diff-arrow">→</span>
+          <span class="diff-badge diff-to"   id="diff-to-label"></span>
+          <span class="diff-legend">
+            <span class="diff-legend-add">+ Added</span>
+            <span class="diff-legend-del">− Removed</span>
+          </span>
+          <button id="redline-pdf-btn" class="btn btn-outline btn-sm">&#8595; Redline PDF</button>
+        </div>
+        <div class="diff-content" id="diff-content">
+          <p class="diff-placeholder">Select a version on the left to see changes.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/tinymce/tinymce.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Database
+database/policies.db
+
+# PDF exports — keep folder, ignore contents
+exports/*
+!exports/.gitkeep
+
+# Hot folder runtime files — keep folder structure, ignore contents
+hotfolder/inbox/*
+hotfolder/processed/*
+hotfolder/failed/*
+!hotfolder/inbox/.gitkeep
+!hotfolder/processed/.gitkeep
+!hotfolder/failed/.gitkeep
+
+# Logs
+server.log
+server.err
+
+# Environment
+.env
