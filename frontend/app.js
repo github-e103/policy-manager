@@ -1,3 +1,31 @@
+/* ── Nav user area ──────────────────────────────────────── */
+(async function setupNav() {
+  const area = document.getElementById('nav-user-area');
+  if (!area) return;
+  try {
+    const res  = await fetch('/api/me');
+    if (!res.ok) return;
+    const user = await res.json();
+    const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username;
+    area.style.cssText = 'display:flex;align-items:center;gap:10px;margin-left:12px;';
+    area.innerHTML = `
+      <span style="font-size:.875rem;color:#555;">${escHtml(name)}</span>
+      ${user.role === 'admin' ? '<a href="/admin/users" class="btn btn-outline btn-sm">Admin</a>' : ''}
+      <a href="/change-password" class="btn btn-outline btn-sm">Change Password</a>
+      <button class="btn btn-outline btn-sm" id="signout-btn">Sign Out</button>
+    `;
+    document.getElementById('signout-btn').addEventListener('click', async () => {
+      await fetch('/logout', { method: 'POST' });
+      location.href = '/login';
+    });
+  } catch {}
+})();
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 /* ── Shared utilities ──────────────────────────────────── */
 
 function toast(msg, type = 'info') {

@@ -1,6 +1,7 @@
 const initSqlJs = require('sql.js');
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcryptjs');
 
 const DB_PATH = path.join(__dirname, 'policies.db');
 let _db;
@@ -43,6 +44,14 @@ async function initDb() {
       FOREIGN KEY (policy_id) REFERENCES policies(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS users (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      username     TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS policy_workflow (
       id                INTEGER PRIMARY KEY AUTOINCREMENT,
       policy_version_id INTEGER NOT NULL,
@@ -58,6 +67,30 @@ async function initDb() {
   ['published_version_id INTEGER', 'locked_by TEXT', 'locked_at DATETIME', 'approved_by TEXT', 'approved_at DATETIME', 'policy_no TEXT'].forEach(col => {
     try { _db.run(`ALTER TABLE policies ADD COLUMN ${col}`); } catch {}
   });
+
+  ['first_name TEXT', 'last_name TEXT', "role TEXT NOT NULL DEFAULT 'normal'"].forEach(col => {
+    try { _db.run(`ALTER TABLE users ADD COLUMN ${col}`); } catch {}
+  });
+
+  // Ensure the bootstrap admin user always has admin role
+  try { _db.run(`UPDATE users SET role='admin' WHERE username='gmachingal'`); } catch {}
+
+  // Seed initial user if none exist
+  const hasUsers = _get('SELECT COUNT(*) as n FROM users').n > 0;
+  if (!hasUsers) {
+    const DEFAULT_PASSWORD = 'changeme';
+    const hash = bcrypt.hashSync(DEFAULT_PASSWORD, 10);
+    _db.run(
+      `INSERT INTO users (username, password_hash, display_name, first_name, last_name, role) VALUES (?, ?, ?, ?, ?, ?)`,
+      ['gmachingal', hash, 'gmachingal', '', '', 'admin']
+    );
+    _persist();
+    console.log('──────────────────────────────────────────');
+    console.log('  First run: default user created');
+    console.log('  Username : gmachingal');
+    console.log(`  Password : ${DEFAULT_PASSWORD}`);
+    console.log('──────────────────────────────────────────');
+  }
 
   _persist();
 }

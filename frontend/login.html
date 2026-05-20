@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elara Health — PolicyManager Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6fb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #1a1a2e;
+    }
+
+    .login-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 48px 44px 40px;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .brand-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #8e2004;
+      letter-spacing: 0.3px;
+    }
+    .brand-sub {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-top: 4px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 7px;
+      font-size: 0.95rem;
+      color: #1a1a2e;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus {
+      border-color: #8e2004;
+    }
+
+    .error-msg {
+      background: #fff1f0;
+      border: 1px solid #fca5a5;
+      color: #b91c1c;
+      border-radius: 7px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      margin-bottom: 18px;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 11px;
+      background: #8e2004;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 6px;
+    }
+    .btn-login:hover { background: #6e1803; }
+
+    .footer {
+      margin-top: 32px;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-name">Elara Health</div>
+      <div class="brand-sub">PolicyManager</div>
+    </div>
+
+    <?php if (isset($_GET['error'])): ?>
+    <!-- static error shown via JS below -->
+    <?php endif; ?>
+    <div class="error-msg" id="error-msg" style="display:none">
+      Invalid username or password.
+    </div>
+
+    <form method="POST" action="/login">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="username" autofocus required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-login">Sign in</button>
+    </form>
+  </div>
+
+  <div class="footer">Elara Health &mdash; PolicyManager</div>
+
+  <script>
+    if (new URLSearchParams(location.search).get('error')) {
+      document.getElementById('error-msg').style.display = '';
+    }
+  </script>
+</body>
+</html>
