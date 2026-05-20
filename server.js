@@ -6,7 +6,10 @@ const path     = require('path');
 const fs       = require('fs');
 const { initDb, db } = require('./database/db');
 const policiesRouter = require('./routes/policies');
-const { startWatcher, processFile, INBOX_DIR } = require('./hotfolder/watcher');
+const { startWatcher, processFile, importOne, INBOX_DIR } = require('./hotfolder/watcher');
+const { parseDocx } = require('./hotfolder/docx-parser');
+const multer = require('multer');
+const os     = require('os');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -151,6 +154,60 @@ app.post('/api/import/process-inbox', (req, res) => {
     }
   }
   res.json({ processed: summary });
+});
+
+// ── Import page ───────────────────────────────────────────────────────────────
+const upload = multer({
+  dest: os.tmpdir(),
+  fileFilter: (_req, file, cb) => {
+    const ok = /\.(docx|json)$/i.test(file.originalname);
+    cb(ok ? null : new Error('Only .docx and .json files are supported'), ok);
+  },
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB per file
+});
+
+app.get('/import', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'import.html'));
+});
+
+app.post('/api/import/upload', upload.array('files', 20), async (req, res) => {
+  const files = req.files || [];
+  if (!files.length) return res.status(400).json({ error: 'No .docx or .json files received' });
+
+  const results = [];
+  for (const file of files) {
+    const originalName = file.originalname;
+    try {
+      if (/\.json$/i.test(originalName)) {
+        // JSON: array or single policy object with metadata + content (HTML)
+        const raw   = fs.readFileSync(file.path, 'utf8');
+        const items = (() => { const d = JSON.parse(raw); return Array.isArray(d) ? d : [d]; })();
+        const batchResults = db.transaction(tx =>
+          items.map((item, i) => {
+            try {
+              const policy = importOne(item, tx);
+              return { file: originalName, success: true, id: policy.id, title: item.title, policy_no: item.policyno };
+            } catch (e) {
+              return { file: originalName, success: false, error: e.message };
+            }
+          })
+        );
+        results.push(...batchResults);
+      } else {
+        // DOCX: extract banner metadata + body HTML via mammoth
+        const data   = await parseDocx(file.path);
+        const policy = db.transaction(tx => importOne(data, tx));
+        results.push({ file: originalName, success: true, id: policy.id, title: data.title, policy_no: data.policyno });
+      }
+    } catch (e) {
+      results.push({ file: originalName, success: false, error: e.message });
+    } finally {
+      fs.unlink(file.path, () => {});
+    }
+  }
+
+  const ok = results.filter(r => r.success).length;
+  res.json({ imported: ok, failed: results.length - ok, results });
 });
 
 app.get('/', (req, res) => {

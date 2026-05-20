@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PolicyManager — Import Policies</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="brand-icon">📋</div>
+    Elara Health - PolicyManager
+  </div>
+  <div class="navbar-actions">
+    <a href="/" class="btn btn-outline">&#8592; Back to Policies</a>
+    <div id="nav-user-area"></div>
+  </div>
+</nav>
+
+<div id="toast-container"></div>
+
+<div class="container" style="max-width:680px;margin-top:40px;">
+  <div class="page-header" style="margin-bottom:24px;">
+    <div>
+      <h1>Import Policies</h1>
+      <p>Upload Word documents (.docx) to import policies. Existing policies with the same Policy No. will be updated to a new draft version.</p>
+    </div>
+  </div>
+
+  <!-- Drop zone -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div id="drop-zone" style="
+      border:2px dashed #d1d5db;border-radius:10px;padding:48px 32px;text-align:center;
+      cursor:pointer;transition:border-color .2s,background .2s;background:#fafafa;
+    ">
+      <div style="font-size:2.4rem;margin-bottom:12px;">📂</div>
+      <p style="font-size:1rem;font-weight:600;color:#374151;margin:0 0 6px;">
+        Drag &amp; drop .docx or .json files here
+      </p>
+      <p style="font-size:.875rem;color:#6b7280;margin:0 0 20px;">or</p>
+      <label class="btn btn-primary" style="cursor:pointer;">
+        Choose Files
+        <input type="file" id="file-input" accept=".docx,.json" multiple style="display:none;">
+      </label>
+      <p style="font-size:.78rem;color:#9ca3af;margin-top:14px;">
+        .docx or .json &bull; Max 20 files &bull; 20 MB each
+      </p>
+    </div>
+
+    <!-- Selected file list -->
+    <div id="file-list" style="display:none;padding:0 24px 8px;border-top:1px solid #f0f0f0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0 8px;">
+        <span id="file-list-label" style="font-size:.875rem;font-weight:600;color:#374151;"></span>
+        <button id="clear-btn" class="btn btn-outline" style="font-size:.8rem;padding:4px 12px;">Clear</button>
+      </div>
+      <ul id="file-items" style="list-style:none;margin:0;padding:0;"></ul>
+    </div>
+
+    <!-- Upload button -->
+    <div id="upload-bar" style="display:none;padding:16px 24px;border-top:1px solid #f0f0f0;justify-content:flex-end;gap:12px;">
+      <button id="upload-btn" class="btn btn-primary">&#8679; Upload &amp; Import</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section" style="display:none;margin-top:28px;">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:16px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px;">
+        <span style="font-weight:600;font-size:.95rem;">Import Results</span>
+        <span id="results-summary" style="font-size:.82rem;color:#6b7280;"></span>
+      </div>
+      <ul id="results-list" style="list-style:none;margin:0;padding:8px 0;"></ul>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+<script>
+  const dropZone    = document.getElementById('drop-zone');
+  const fileInput   = document.getElementById('file-input');
+  const fileList    = document.getElementById('file-list');
+  const fileItems   = document.getElementById('file-items');
+  const fileLabel   = document.getElementById('file-list-label');
+  const clearBtn    = document.getElementById('clear-btn');
+  const uploadBar   = document.getElementById('upload-bar');
+  const uploadBtn   = document.getElementById('upload-btn');
+  const resultsSection = document.getElementById('results-section');
+  const resultsList    = document.getElementById('results-list');
+  const resultsSummary = document.getElementById('results-summary');
+
+  let selectedFiles = [];
+
+  function updateFileList() {
+    if (!selectedFiles.length) {
+      fileList.style.display = 'none';
+      uploadBar.style.display = 'none';
+      return;
+    }
+    fileList.style.display = '';
+    uploadBar.style.display = 'flex';
+    fileLabel.textContent = `${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'} selected`;
+    fileItems.innerHTML = selectedFiles.map((f, i) => `
+      <li style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.875rem;color:#374151;border-bottom:1px solid #f9f9f9;">
+        <span style="color:#6b7280;font-size:1rem;">📄</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(f.name)}</span>
+        <span style="color:#9ca3af;font-size:.78rem;flex-shrink:0;">${(f.size / 1024).toFixed(0)} KB</span>
+        <button onclick="removeFile(${i})" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:1rem;padding:0 4px;line-height:1;" title="Remove">&times;</button>
+      </li>
+    `).join('');
+  }
+
+  function removeFile(i) {
+    selectedFiles.splice(i, 1);
+    updateFileList();
+  }
+
+  function addFiles(newFiles) {
+    const existing = new Set(selectedFiles.map(f => f.name));
+    for (const f of newFiles) {
+      if (!/\.(docx|json)$/i.test(f.name)) continue;
+      if (!existing.has(f.name)) { selectedFiles.push(f); existing.add(f.name); }
+    }
+    updateFileList();
+  }
+
+  clearBtn.addEventListener('click', () => {
+    selectedFiles = [];
+    fileInput.value = '';
+    updateFileList();
+  });
+
+  fileInput.addEventListener('change', () => addFiles([...fileInput.files]));
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#8e2004';
+    dropZone.style.background  = '#fff8f7';
+  });
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = '#d1d5db';
+    dropZone.style.background  = '#fafafa';
+  });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#d1d5db';
+    dropZone.style.background  = '#fafafa';
+    addFiles([...e.dataTransfer.files]);
+  });
+
+  uploadBtn.addEventListener('click', async () => {
+    if (!selectedFiles.length) return;
+
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Importing…';
+    resultsSection.style.display = 'none';
+
+    const form = new FormData();
+    selectedFiles.forEach(f => form.append('files', f));
+
+    try {
+      const res  = await fetch('/api/import/upload', { method: 'POST', body: form });
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast(data.error || 'Upload failed', 'error');
+        return;
+      }
+
+      resultsSummary.textContent =
+        `${data.imported} imported, ${data.failed} failed`;
+
+      resultsList.innerHTML = data.results.map(r => `
+        <li style="display:flex;align-items:flex-start;gap:10px;padding:10px 24px;border-bottom:1px solid #f9f9f9;">
+          <span style="margin-top:2px;">${r.success ? '✅' : '❌'}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:.875rem;font-weight:600;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(r.file)}</div>
+            ${r.success
+              ? `<div style="font-size:.8rem;color:#6b7280;margin-top:2px;">
+                   ${escHtml(r.policy_no ? `[${r.policy_no}] ` : '')}${escHtml(r.title || '')}
+                 </div>`
+              : `<div style="font-size:.8rem;color:#b91c1c;margin-top:2px;">${escHtml(r.error)}</div>`
+            }
+          </div>
+        </li>
+      `).join('');
+
+      resultsSection.style.display = '';
+      selectedFiles = [];
+      fileInput.value = '';
+      updateFileList();
+
+      if (data.imported > 0) toast(`${data.imported} polic${data.imported === 1 ? 'y' : 'ies'} imported`, 'success');
+
+    } catch {
+      toast('Network error — please try again', 'error');
+    } finally {
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = '⇧ Upload & Import';
+    }
+  });
+</script>
+
+</body>
+</html>

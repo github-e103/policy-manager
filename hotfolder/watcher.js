@@ -12,7 +12,8 @@ const FAILED_DIR    = path.join(__dirname, 'failed');
 // If a policy with the same policy_no already exists, add a new version instead.
 function importOne(data, tx) {
   const {
-    title         = '',
+    policytitle   = '',
+    title:        _title = '',
     policyno      = '',
     department    = '',
     effectiveDate = '',
@@ -21,7 +22,9 @@ function importOne(data, tx) {
     content       = '',
   } = data;
 
-  if (!title.trim())      throw new Error('title is required');
+  const title = (policytitle || _title).trim();
+
+  if (!title)             throw new Error('policytitle is required');
   if (!department.trim()) throw new Error('department is required');
 
   const owner    = (approvedBy || 'System').trim();
@@ -40,7 +43,7 @@ function importOne(data, tx) {
           SET title=?, owner=?, department=?, approved_by=?, approved_at=?,
               status='draft', updated_at=CURRENT_TIMESTAMP
         WHERE id=?`,
-      [title.trim(), owner, department.trim(),
+      [title, owner, department.trim(),
        approvedBy || null, approvedDate || null,
        existing.id]
     );
@@ -75,7 +78,7 @@ function importOne(data, tx) {
        (title, owner, department, category, status, policy_no,
         approved_by, approved_at, created_at, updated_at)
      VALUES (?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)`,
-    [title.trim(), owner, department.trim(), category, policyno,
+    [title, owner, department.trim(), category, policyno,
      approvedBy || null, approvedDate || null, createdAt, createdAt]
   );
   const policyId = pol.lastInsertRowid;
@@ -212,4 +215,4 @@ function startWatcher(db) {
   });
 }
 
-module.exports = { startWatcher, processFile, INBOX_DIR, PROCESSED_DIR, FAILED_DIR };
+module.exports = { startWatcher, processFile, importOne, INBOX_DIR, PROCESSED_DIR, FAILED_DIR };
