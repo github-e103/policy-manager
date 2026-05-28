@@ -16,23 +16,26 @@ function policyFilename(policyNo, title) {
   return `${safeNo}-${safeTitle}.pdf`;
 }
 
-// Persistent Puppeteer browser — launched once, reused for every preview/export.
+const CHROME_ARGS = [
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-dev-shm-usage',
+  '--disable-gpu',
+  '--no-zygote',
+];
+
+async function launchBrowser() {
+  const puppeteer = require('puppeteer');
+  return puppeteer.launch({ headless: true, args: CHROME_ARGS });
+}
+
+// Persistent browser reused for single-page operations (preview, single export).
 let _browser;
 async function getBrowser() {
   if (!_browser || !_browser.isConnected()) {
     _browser = null;
-    const puppeteer = require('puppeteer');
-    _browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-zygote',
-        '--single-process',
-      ],
-    });
+    _browser = await launchBrowser();
+    _browser.on('disconnected', () => { _browser = null; });
   }
   return _browser;
 }
@@ -501,7 +504,7 @@ router.post('/batch-export', async (req, res) => {
   archive.on('error', err => { console.error('Archive error:', err); res.end(); });
   archive.pipe(res);
 
-  const browser = await getBrowser();
+  const browser = await launchBrowser();
 
   for (const id of ids) {
     try {
@@ -532,6 +535,7 @@ router.post('/batch-export', async (req, res) => {
   }
 
   await archive.finalize();
+  await browser.close();
 });
 
 // DELETE /api/policies/:id
