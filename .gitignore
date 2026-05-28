@@ -20,9 +20,8 @@ hotfolder/failed/*
 server.log
 server.err
 
-# Puppeteer — cached Chromium binary and bundled system libraries
+# Puppeteer — cached Chromium binary
 .puppeteer-cache/
-lib/
 
 # Fonts copied from node_modules at build time
 frontend/fonts/
