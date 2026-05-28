@@ -20,5 +20,8 @@ hotfolder/failed/*
 server.log
 server.err
 
+# Puppeteer — cached Chromium binary
+.puppeteer-cache/
+
 # Environment
 .env
