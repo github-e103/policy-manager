@@ -17,24 +17,14 @@ function policyFilename(policyNo, title) {
 }
 
 // Persistent Puppeteer browser — launched once, reused for every preview/export.
-// On Linux (Azure App Service) we use @sparticuz/chromium since Chrome is not pre-installed.
-// On Windows (local dev) we use puppeteer's bundled Chromium.
 let _browser;
 async function getBrowser() {
   if (!_browser || !_browser.isConnected()) {
-    const baseArgs = ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'];
-    if (process.platform === 'linux') {
-      const { default: Chromium } = await import('@sparticuz/chromium');
-      const puppeteerCore = require('puppeteer-core');
-      _browser = await puppeteerCore.launch({
-        args: [...Chromium.args, ...baseArgs],
-        executablePath: await Chromium.executablePath(),
-        headless: true,
-      });
-    } else {
-      const puppeteer = require('puppeteer');
-      _browser = await puppeteer.launch({ headless: true, args: baseArgs });
-    }
+    const puppeteer = require('puppeteer');
+    _browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
   }
   return _browser;
 }
