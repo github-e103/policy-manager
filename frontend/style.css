@@ -223,6 +223,20 @@ input, select, textarea { font-family: inherit; color: var(--text); }
 .badge-approved { background: var(--success-light); color: #065f46; }
 .badge-rejected { background: var(--danger-light);  color: #7f1d1d; }
 
+/* ── Sortable headers ─────────────────────────────────── */
+.policies-table th[data-sort] { cursor: pointer; user-select: none; white-space: nowrap; }
+.policies-table th[data-sort]:hover { color: var(--accent); }
+.policies-table th.sorted { color: var(--accent); }
+.sort-icon { font-size: .7rem; }
+
+/* ── Pagination ───────────────────────────────────────── */
+.pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; padding: 14px 16px;
+  border-top: 1px solid var(--border-light);
+}
+.pg-info { font-size: .82rem; color: var(--text-muted); }
+
 /* ── Actions ──────────────────────────────────────────── */
 .action-btns { display: flex; gap: 6px; }
 

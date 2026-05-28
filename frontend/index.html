@@ -78,6 +78,9 @@
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
         </select>
+        <select id="dept-filter" class="form-input" style="width:190px">
+          <option value="">All Departments</option>
+        </select>
         <button id="batch-download-btn" class="btn btn-outline" disabled style="white-space:nowrap">
           &#8595; Download Selected (<span id="selected-count">0</span>)
         </button>
@@ -89,13 +92,13 @@
         <thead>
           <tr>
             <th style="width:36px"><input type="checkbox" id="select-all" title="Select all"></th>
-            <th>Policy No</th>
-            <th>Title</th>
-            <th>Owner</th>
-            <th>Department</th>
-            <th>Status</th>
-            <th>Version</th>
-            <th>Last Updated</th>
+            <th data-sort="policy_no">Policy No <span class="sort-icon"></span></th>
+            <th data-sort="title">Title <span class="sort-icon"></span></th>
+            <th data-sort="owner">Owner <span class="sort-icon"></span></th>
+            <th data-sort="department">Department <span class="sort-icon"></span></th>
+            <th data-sort="status">Status <span class="sort-icon"></span></th>
+            <th data-sort="version_number">Version <span class="sort-icon"></span></th>
+            <th data-sort="updated_at">Last Updated <span class="sort-icon"></span></th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -108,6 +111,8 @@
         </tbody>
       </table>
     </div>
+
+    <div id="pagination" class="pagination"></div>
 
     <div class="empty-state" id="empty-state">
       <div class="empty-icon">📄</div>

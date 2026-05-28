@@ -57,6 +57,10 @@ function statusBadge(s) {
 if (document.getElementById('policies-tbody')) {
   let allPolicies = [];
   let selectedIds = new Set();
+  let sortCol     = 'updated_at';
+  let sortDir     = 'desc';
+  let currentPage = 1;
+  const PAGE_SIZE = 50;
 
   async function loadPolicies() {
     const tbody = document.getElementById('policies-tbody');
@@ -67,8 +71,9 @@ if (document.getElementById('policies-tbody')) {
       allPolicies = await res.json();
       selectedIds.clear();
       updateBatchBtn();
-      renderTable(allPolicies);
       renderStats(allPolicies);
+      populateDeptFilter();
+      filterPolicies();
     } catch (e) {
       tbody.innerHTML = `<tr><td colspan="9" class="error-cell">Failed to load policies: ${e.message}</td></tr>`;
     }
@@ -198,27 +203,93 @@ if (document.getElementById('policies-tbody')) {
     }
   });
 
+  function populateDeptFilter() {
+    const depts = [...new Set(allPolicies.map(p => p.department).filter(Boolean))].sort();
+    const sel = document.getElementById('dept-filter');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All Departments</option>' +
+      depts.map(d => `<option value="${esc(d)}"${d === cur ? ' selected' : ''}>${esc(d)}</option>`).join('');
+  }
+
   function filterPolicies() {
     const q      = document.getElementById('search-input').value.toLowerCase();
     const status = document.getElementById('status-filter').value;
-    const filtered = allPolicies.filter(p => {
+    const dept   = document.getElementById('dept-filter').value;
+
+    let filtered = allPolicies.filter(p => {
       const matchQ = !q || [p.title, p.owner, p.department, p.category].some(f => f && f.toLowerCase().includes(q));
       let matchS;
       if (!status) {
         matchS = true;
       } else if (status === 'approved') {
-        // Approved filter includes policies with a published version (even if currently in draft/review)
         matchS = p.status === 'approved' || !!p.published_version_id;
       } else {
         matchS = p.status === status && !p.published_version_id;
       }
-      return matchQ && matchS;
+      const matchD = !dept || p.department === dept;
+      return matchQ && matchS && matchD;
     });
-    renderTable(filtered);
+
+    filtered.sort((a, b) => {
+      let av = a[sortCol] ?? '';
+      let bv = b[sortCol] ?? '';
+      if (sortCol === 'version_number') { av = +(av || 0); bv = +(bv || 0); }
+      const cmp = typeof av === 'number' ? av - bv : String(av).localeCompare(String(bv));
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    const total = filtered.length;
+    const start = (currentPage - 1) * PAGE_SIZE;
+    renderTable(filtered.slice(start, start + PAGE_SIZE));
+    renderPagination(total);
+    updateSortIcons();
   }
 
-  document.getElementById('search-input').addEventListener('input', filterPolicies);
-  document.getElementById('status-filter').addEventListener('change', filterPolicies);
+  function renderPagination(total) {
+    const pag = document.getElementById('pagination');
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    if (totalPages <= 1) { pag.innerHTML = ''; return; }
+    const from = (currentPage - 1) * PAGE_SIZE + 1;
+    const to   = Math.min(currentPage * PAGE_SIZE, total);
+    pag.innerHTML = `
+      <button class="btn btn-outline btn-sm" id="pg-prev" ${currentPage === 1 ? 'disabled' : ''}>&lsaquo; Prev</button>
+      <span class="pg-info">Page ${currentPage} of ${totalPages} &nbsp;&mdash;&nbsp; ${from}–${to} of ${total}</span>
+      <button class="btn btn-outline btn-sm" id="pg-next" ${currentPage === totalPages ? 'disabled' : ''}>Next &rsaquo;</button>
+    `;
+    document.getElementById('pg-prev').addEventListener('click', () => { currentPage--; filterPolicies(); });
+    document.getElementById('pg-next').addEventListener('click', () => { currentPage++; filterPolicies(); });
+  }
+
+  function updateSortIcons() {
+    document.querySelectorAll('.policies-table th[data-sort]').forEach(th => {
+      const icon = th.querySelector('.sort-icon');
+      if (th.dataset.sort === sortCol) {
+        icon.textContent = sortDir === 'asc' ? ' ▲' : ' ▼';
+        th.classList.add('sorted');
+      } else {
+        icon.textContent = '';
+        th.classList.remove('sorted');
+      }
+    });
+  }
+
+  document.getElementById('search-input').addEventListener('input', () => { currentPage = 1; filterPolicies(); });
+  document.getElementById('status-filter').addEventListener('change', () => { currentPage = 1; filterPolicies(); });
+  document.getElementById('dept-filter').addEventListener('change', () => { currentPage = 1; filterPolicies(); });
+
+  document.querySelector('.policies-table thead').addEventListener('click', e => {
+    const th = e.target.closest('th[data-sort]');
+    if (!th) return;
+    const col = th.dataset.sort;
+    if (sortCol === col) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortCol = col;
+      sortDir = col === 'updated_at' ? 'desc' : 'asc';
+    }
+    currentPage = 1;
+    filterPolicies();
+  });
 
   document.getElementById('new-policy-btn').addEventListener('click', () => {
     window.location.href = '/editor.html';
@@ -545,7 +616,7 @@ if (document.getElementById('editor-form')) {
     const category   = categoryInput.value.trim();
 
     if (!title || !owner || !department || !category) {
-      toast('Title, Owner, Department, and Function are required', 'error');
+      toast('Title, Owner, Department, and Category are required', 'error');
       return;
     }
 

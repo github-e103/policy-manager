@@ -10,6 +10,12 @@ const TEMPLATE_PATH  = path.join(__dirname, '..', 'templates', 'policy-pdf.html'
 // Base URL so Puppeteer resolves relative asset paths (imgs/, fonts/, etc.) from the frontend folder
 const FRONTEND_BASE  = 'file:///' + path.join(__dirname, '..', 'frontend').replace(/\\/g, '/') + '/';
 
+function policyFilename(policyNo, title) {
+  const safeNo    = (policyNo || 'POL').replace(/[^a-z0-9\-_.]/gi, '_');
+  const safeTitle = (title    || 'Untitled').replace(/[^a-z0-9\-_. ]/gi, '_').slice(0, 30).trimEnd();
+  return `${safeNo}-${safeTitle}.pdf`;
+}
+
 // Persistent Puppeteer browser — launched once, reused for every preview/export.
 let _browser;
 async function getBrowser() {
@@ -405,7 +411,7 @@ router.post('/:id/export-pdf', async (req, res) => {
     const exportsDir = path.join(__dirname, '..', 'exports');
     fs.mkdirSync(exportsDir, { recursive: true });
 
-    const filename = `policy-${id}-v${latestVersion.version_number}-${Date.now()}.pdf`;
+    const filename = policyFilename(policy.policy_no, policy.title);
     const filepath = path.join(exportsDir, filename);
 
     const browser = await getBrowser();
@@ -511,9 +517,7 @@ router.post('/batch-export', async (req, res) => {
         await page.close();
       }
 
-      const polId = policy.policy_no || `POL-${String(policy.id).padStart(4, '0')}`;
-      const safeName = policy.title.replace(/[^a-z0-9\-_. ]/gi, '_').slice(0, 60);
-      archive.append(Buffer.from(pdfBuf), { name: `${polId} ${safeName}.pdf` });
+      archive.append(Buffer.from(pdfBuf), { name: policyFilename(policy.policy_no, policy.title) });
     } catch (err) {
       console.error(`Batch export: skipped policy ${id}:`, err.message);
     }
