@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./scripts/install-chrome-deps');
 const express  = require('express');
 const session  = require('express-session');
 const bcrypt   = require('bcryptjs');
