@@ -122,7 +122,7 @@ router.post('/preview-pdf', async (req, res) => {
     const browser = await getBrowser();
     const page = await browser.newPage();
     try {
-      await page.setContent(html, { waitUntil: 'domcontentloaded', baseURL: FRONTEND_BASE });
+      await page.setContent(html, { waitUntil: 'networkidle0', baseURL: FRONTEND_BASE });
       const pdf = await page.pdf(makePdfOptions(policy_no, title));
       res.type('application/pdf').send(Buffer.from(pdf));
     } finally {
@@ -436,7 +436,7 @@ router.post('/:id/export-pdf', async (req, res) => {
     const browser = await getBrowser();
     const page = await browser.newPage();
     try {
-      await page.setContent(html, { waitUntil: 'domcontentloaded', baseURL: FRONTEND_BASE });
+      await page.setContent(html, { waitUntil: 'networkidle0', baseURL: FRONTEND_BASE });
       await page.pdf({ ...makePdfOptions(policy.policy_no, policy.title), path: filepath });
     } finally {
       await page.close();
@@ -486,7 +486,7 @@ router.get('/:id/export-redline-pdf', async (req, res) => {
     const browser = await getBrowser();
     const page = await browser.newPage();
     try {
-      await page.setContent(html, { waitUntil: 'domcontentloaded', baseURL: FRONTEND_BASE });
+      await page.setContent(html, { waitUntil: 'networkidle0', baseURL: FRONTEND_BASE });
       await page.pdf({ ...makePdfOptions(policy.policy_no, policy.title), path: filepath });
     } finally {
       await page.close();
@@ -530,7 +530,7 @@ router.post('/batch-export', async (req, res) => {
       const page = await browser.newPage();
       let pdfBuf;
       try {
-        await page.setContent(html, { waitUntil: 'domcontentloaded', baseURL: FRONTEND_BASE });
+        await page.setContent(html, { waitUntil: 'networkidle0', baseURL: FRONTEND_BASE });
         pdfBuf = await page.pdf(makePdfOptions(policy.policy_no, policy.title));
       } finally {
         await page.close();
