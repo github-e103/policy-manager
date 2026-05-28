@@ -20,8 +20,9 @@ hotfolder/failed/*
 server.log
 server.err
 
-# Puppeteer — cached Chromium binary
+# Puppeteer — cached Chromium binary and bundled system libraries
 .puppeteer-cache/
+lib/
 
 # Environment
 .env

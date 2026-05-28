@@ -3,6 +3,14 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 const archiver = require('archiver');
+
+// On Linux, point Chrome at the system libs bundled during CI deployment.
+if (process.platform === 'linux') {
+  const libDir = path.join(__dirname, '..', 'lib');
+  if (fs.existsSync(libDir)) {
+    process.env.LD_LIBRARY_PATH = libDir + (process.env.LD_LIBRARY_PATH ? ':' + process.env.LD_LIBRARY_PATH : '');
+  }
+}
 const { diffWords, diffArrays } = require('diff');
 const { db } = require('../database/db');
 

@@ -24,6 +24,20 @@ jobs:
       - name: Build (if applicable)
         run: npm run build --if-present
 
+      - name: Bundle Chrome system libraries
+        run: |
+          CHROME=$(find .puppeteer-cache -name 'chrome' -type f 2>/dev/null | head -1)
+          if [ -n "$CHROME" ]; then
+            mkdir -p lib
+            ldd "$CHROME" 2>/dev/null \
+              | grep "=> /" | awk '{print $3}' \
+              | grep -v 'ld-linux' \
+              | xargs -I{} cp --no-clobber {} lib/ 2>/dev/null || true
+            echo "Bundled $(ls lib/ | wc -l) system libraries alongside Chrome"
+          else
+            echo "Chrome binary not found — skipping lib bundle"
+          fi
+
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
