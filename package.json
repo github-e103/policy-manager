@@ -4,11 +4,11 @@
   "description": "Full-stack Policy Management System",
   "main": "server.js",
   "scripts": {
-    "prestart": "node scripts/install-chrome-deps.js",
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
   "dependencies": {
+    "@fontsource/source-sans-3": "^5.2.9",
     "archiver": "^6.0.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",

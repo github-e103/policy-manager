@@ -24,5 +24,8 @@ server.err
 .puppeteer-cache/
 lib/
 
+# Fonts copied from node_modules at build time
+frontend/fonts/
+
 # Environment
 .env

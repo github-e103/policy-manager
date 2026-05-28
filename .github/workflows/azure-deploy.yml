@@ -24,6 +24,14 @@ jobs:
       - name: Build (if applicable)
         run: npm run build --if-present
 
+      - name: Copy Source Sans 3 fonts to frontend
+        run: |
+          mkdir -p frontend/fonts
+          for w in 400 600 700; do
+            cp "node_modules/@fontsource/source-sans-3/files/source-sans-3-latin-${w}-normal.woff2" \
+               "frontend/fonts/source-sans-3-${w}.woff2"
+          done
+
       - name: Bundle Chrome system libraries
         run: |
           CHROME=$(find .puppeteer-cache -name 'chrome' -type f 2>/dev/null | head -1)
