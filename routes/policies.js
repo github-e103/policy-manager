@@ -20,10 +20,18 @@ function policyFilename(policyNo, title) {
 let _browser;
 async function getBrowser() {
   if (!_browser || !_browser.isConnected()) {
+    _browser = null;
     const puppeteer = require('puppeteer');
     _browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-zygote',
+        '--single-process',
+      ],
     });
   }
   return _browser;
