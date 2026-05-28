@@ -27,6 +27,7 @@ jobs:
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'policy-manager'  
+          app-name: 'policy-manager'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: .
+          startup-command: 'bash /home/site/wwwroot/startup.sh'
