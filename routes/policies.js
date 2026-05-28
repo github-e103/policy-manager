@@ -24,11 +24,11 @@ async function getBrowser() {
   if (!_browser || !_browser.isConnected()) {
     const baseArgs = ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'];
     if (process.platform === 'linux') {
-      const chromium = require('@sparticuz/chromium');
+      const { default: Chromium } = await import('@sparticuz/chromium');
       const puppeteerCore = require('puppeteer-core');
       _browser = await puppeteerCore.launch({
-        args: baseArgs,
-        executablePath: await chromium.executablePath(),
+        args: [...Chromium.args, ...baseArgs],
+        executablePath: await Chromium.executablePath(),
         headless: true,
       });
     } else {
