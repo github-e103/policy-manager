@@ -27,9 +27,9 @@ async function getBrowser() {
       const chromium = require('@sparticuz/chromium');
       const puppeteerCore = require('puppeteer-core');
       _browser = await puppeteerCore.launch({
-        args: [...chromium.args, ...baseArgs],
+        args: baseArgs,
         executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        headless: true,
       });
     } else {
       const puppeteer = require('puppeteer');
