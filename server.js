@@ -128,6 +128,24 @@ app.post('/api/admin/users', requireAdmin, (req, res) => {
   }
 });
 
+app.put('/api/admin/users/:id', requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const { firstName, lastName, title, role } = req.body;
+  if (!firstName?.trim() || !lastName?.trim()) {
+    return res.status(400).json({ error: 'First name and last name are required' });
+  }
+  if (!['admin', 'approver', 'normal'].includes(role)) {
+    return res.status(400).json({ error: 'Invalid role' });
+  }
+  const displayName = `${firstName.trim()} ${lastName.trim()}`;
+  const changes = db.run(
+    `UPDATE users SET first_name=?, last_name=?, display_name=?, title=?, role=? WHERE id=?`,
+    [firstName.trim(), lastName.trim(), displayName, title?.trim() || '', role, id]
+  );
+  if (!changes.changes) return res.status(404).json({ error: 'User not found' });
+  res.json({ ok: true });
+});
+
 // ── Auth guard ────────────────────────────────────────────────────────────────
 app.use((req, res, next) => {
   if (req.session.user) return next();

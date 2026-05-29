@@ -38,6 +38,7 @@
             <th>Title</th>
             <th>Role</th>
             <th>Created</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="users-tbody">
@@ -46,6 +47,41 @@
       </table>
     </div>
   </div>
+
+  <!-- Edit user modal -->
+  <dialog id="edit-modal" style="border:none;border-radius:12px;padding:32px;width:460px;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <h2 style="font-size:1.1rem;margin-bottom:20px;">Edit User</h2>
+    <div id="edit-error" class="alert alert-error" style="display:none;margin-bottom:16px;"></div>
+    <form id="edit-user-form">
+      <input type="hidden" id="edit-id">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input type="text" id="edit-first-name" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input type="text" id="edit-last-name" class="form-input" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" id="edit-title" class="form-input" placeholder="e.g. Chief Compliance Officer">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select id="edit-role" class="form-input">
+          <option value="normal">Normal</option>
+          <option value="approver">Approver</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+        <button type="button" class="btn btn-secondary" id="edit-cancel" style="color:#333;border-color:#ccc;">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="edit-save-btn">Save Changes</button>
+      </div>
+    </form>
+  </dialog>
 
   <!-- Add user form -->
   <div class="card" style="max-width:520px;padding:28px 32px;">
@@ -112,6 +148,10 @@
           <td>${escHtml(u.title || '—')}</td>
           <td><span class="badge ${roleBadge(u.role)}">${roleLabel(u.role)}</span></td>
           <td>${new Date(u.created_at).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</td>
+          <td><button class="btn btn-outline btn-sm edit-btn"
+                data-id="${u.id}" data-first="${escHtml(u.first_name||'')}"
+                data-last="${escHtml(u.last_name||'')}" data-title="${escHtml(u.title||'')}"
+                data-role="${u.role}">Edit</button></td>
         </tr>
       `).join('');
     } catch (e) {
@@ -159,6 +199,55 @@
     } finally {
       btn.disabled = false;
       btn.textContent = 'Add User';
+    }
+  });
+
+  // Edit modal wiring
+  const modal     = document.getElementById('edit-modal');
+  const editForm  = document.getElementById('edit-user-form');
+  const editError = document.getElementById('edit-error');
+
+  document.getElementById('users-tbody').addEventListener('click', e => {
+    const btn = e.target.closest('.edit-btn');
+    if (!btn) return;
+    editError.style.display = 'none';
+    document.getElementById('edit-id').value         = btn.dataset.id;
+    document.getElementById('edit-first-name').value = btn.dataset.first;
+    document.getElementById('edit-last-name').value  = btn.dataset.last;
+    document.getElementById('edit-title').value      = btn.dataset.title;
+    document.getElementById('edit-role').value       = btn.dataset.role;
+    modal.showModal();
+  });
+
+  document.getElementById('edit-cancel').addEventListener('click', () => modal.close());
+  modal.addEventListener('click', e => { if (e.target === modal) modal.close(); });
+
+  editForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    editError.style.display = 'none';
+    const saveBtn = document.getElementById('edit-save-btn');
+    saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+    try {
+      const res = await fetch(`/api/admin/users/${document.getElementById('edit-id').value}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: document.getElementById('edit-first-name').value.trim(),
+          lastName:  document.getElementById('edit-last-name').value.trim(),
+          title:     document.getElementById('edit-title').value.trim(),
+          role:      document.getElementById('edit-role').value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { editError.textContent = data.error || 'Save failed.'; editError.style.display = ''; return; }
+      modal.close();
+      toast('User updated successfully', 'success');
+      loadUsers();
+    } catch {
+      editError.textContent = 'Network error. Please try again.';
+      editError.style.display = '';
+    } finally {
+      saveBtn.disabled = false; saveBtn.textContent = 'Save Changes';
     }
   });
 
