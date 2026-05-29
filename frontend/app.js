@@ -7,12 +7,12 @@
     if (!res.ok) return;
     const user = await res.json();
     const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username;
-    area.style.cssText = 'display:flex;align-items:center;gap:10px;margin-left:12px;';
+    area.style.cssText = 'display:flex;align-items:center;gap:10px;margin-left:16px;padding-left:16px;border-left:1px solid rgba(255,255,255,.2);';
     area.innerHTML = `
-      <span style="font-size:.875rem;color:#555;">${escHtml(name)}</span>
-      ${user.role === 'admin' ? '<a href="/admin/users" class="btn btn-outline btn-sm">Admin</a>' : ''}
-      <a href="/change-password" class="btn btn-outline btn-sm">Change Password</a>
-      <button class="btn btn-outline btn-sm" id="signout-btn">Sign Out</button>
+      <span style="font-size:.875rem;font-weight:600;color:#fff;">&#128100; ${escHtml(name)}</span>
+      ${user.role === 'admin' ? '<a href="/admin/users" class="btn btn-sm" style="background:#f59e0b;color:#1a1a2e;font-weight:600;">Admin</a>' : ''}
+      <a href="/change-password" class="btn btn-secondary btn-sm">Change Password</a>
+      <button class="btn btn-sm" style="background:#ef4444;color:white;" id="signout-btn">Sign Out</button>
     `;
     document.getElementById('signout-btn').addEventListener('click', async () => {
       await fetch('/logout', { method: 'POST' });
