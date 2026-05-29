@@ -23,8 +23,5 @@ server.err
 # Puppeteer — cached Chromium binary
 .puppeteer-cache/
 
-# Fonts copied from node_modules at build time
-frontend/fonts/
-
 # Environment
 .env
