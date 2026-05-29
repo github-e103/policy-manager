@@ -12,6 +12,20 @@ const TEMPLATE_PATH  = path.join(__dirname, '..', 'templates', 'policy-pdf.html'
 // Base URL so Puppeteer resolves relative asset paths (imgs/, fonts/, etc.) from the frontend folder
 const FRONTEND_BASE  = 'file:///' + path.join(__dirname, '..', 'frontend').replace(/\\/g, '/') + '/';
 
+// Pre-load fonts as base64 so they are embedded directly in the PDF HTML —
+// avoids file:// security restrictions in headless Chrome.
+function buildFontFaceCSS() {
+  const fontsDir = path.join(__dirname, '..', 'frontend', 'fonts');
+  const weights  = [400, 600, 700];
+  return weights.map(w => {
+    const file = path.join(fontsDir, `source-sans-3-${w}.woff2`);
+    if (!fs.existsSync(file)) return '';
+    const b64 = fs.readFileSync(file).toString('base64');
+    return `@font-face{font-family:'Source Sans 3';font-weight:${w};src:url('data:font/woff2;base64,${b64}') format('woff2');}`;
+  }).join('\n');
+}
+const FONT_FACE_CSS = buildFontFaceCSS();
+
 function policyFilename(policyNo, title) {
   const safeNo    = (policyNo || 'POL').replace(/[^a-z0-9\-_.]/gi, '_');
   const safeTitle = (title    || 'Untitled').replace(/[^a-z0-9\-_. ]/gi, '_').slice(0, 30).trimEnd();
@@ -97,7 +111,7 @@ function fillTemplate(policy, version, metadata) {
     .replace(/\{\{APPROVED_DATE\}\}/g,     policy.approved_at ? fmt(policy.approved_at) : '—')
     .replace(/\{\{BODY_HTML\}\}/g,         version.body_html || '<p><em>No content provided.</em></p>');
 
-  return inlineImages(rendered);
+  return inlineImages(rendered).replace('</head>', `<style>${FONT_FACE_CSS}</style></head>`);
 }
 
 // POST /api/policies/preview-pdf — live preview: returns PDF bytes for the current form state
